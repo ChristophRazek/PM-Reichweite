@@ -1,19 +1,20 @@
 
 
-liste = f"""SELECT distinct st.ARTIKELNR
+liste = f"""SELECT distinct st.ARTIKELNR, bp.LIEFERANTENNR
 
   FROM [emea_enventa_live].[dbo].[BESTELLPOS] as bp
   left join [emea_enventa_live].[dbo].STUECKLISTE as st
   on bp.ARTIKELNR = st.BAUGRUPPE
-  where bp.LIEFERANTENNR = 70044 and bp.STATUS < 3 and (st.BEZEICHNUNG like 'PM%') """
+  where bp.STATUS < 3 and (st.BEZEICHNUNG like 'PM%') """
 
 
 ########################################################################################################################
 
 bestand_ancorotti = f"""SELECT [ARTIKELNR]
       ,[BUCHBESTAND]
+      ,LAGERNR
   FROM [emea_enventa_live].[dbo].[LAGER]
-  where BranchKey = 110 and LAGERNR = 208"""
+  where BranchKey = 110"""
 
 ########################################################################################################################
 fw_ancorotti = f"""SELECT
@@ -31,12 +32,13 @@ fw_ancorotti = f"""SELECT
       ,st.ARTIKELNR as 'PM Nr'
       ,st.BEZEICHNUNG as 'PM Description'
       ,bp.[PE14_CommentEMEA]
+      ,bp.LIEFERANTENNR
 
 
   FROM [emea_enventa_live].[dbo].[BESTELLPOS] as bp
   left join [emea_enventa_live].[dbo].STUECKLISTE as st
   on bp.ARTIKELNR = st.BAUGRUPPE
-  where bp.LIEFERANTENNR = 70044 and bp.STATUS < 3 and (st.BEZEICHNUNG like 'PM%' or st.BEZEICHNUNG is null)
+  where bp.STATUS < 3 and (st.BEZEICHNUNG like 'PM%' or st.BEZEICHNUNG is null)
 
   order by bp.LIEFERDATUM"""
 
@@ -50,9 +52,10 @@ pm_ancorotti = f"""SELECT [FIXPOSNR]
       ,[PREADVISE MENGE]
       ,[ABFÜLLER]
       ,[EXP DISPATCH]
+      ,ABFÜLLER
 
   FROM [emea_enventa_live].[db_dataviewer].[PE14_SHIPPMENTLIST]
-  where BELEGART = 191 and ARTIKELNR <> '0099-001-000-01' and [SHIPMENT STATUS] <> 'received' and ABFÜLLER = 'NUCO E.i.G. Kosyl s.j.'
+  where BELEGART = 191 and ARTIKELNR <> '0099-001-000-01' and [SHIPMENT STATUS] <> 'received'
 
   order by [EXP DISPATCH]"""
 
