@@ -9,7 +9,7 @@ conn_string = r'DRIVER={SQL Server}; server=172.19.128.2\emeadb; database=emea_e
 conx = pyodbc.connect(conn_string)
 
 #SQL Varibalen
-sql_variables = [[70002,'Ancorotti Cosmetics S.p.A.',201],[70044,'NUCO E.i.G. Kosyl s.j.',208], [70001, 'Oxygen Development GmbH',200]]
+sql_variables = [[70002,'Ancorotti Cosmetics S.p.A.',201,30],[70044,'NUCO E.i.G. Kosyl s.j.',208,30], [70001, 'Oxygen Development GmbH',200,30]]
 
 filler_forecast = {}
 
@@ -73,7 +73,7 @@ def Bedarfsdeckung(x):
 
                     pm_list.pop(0)
 
-    #Ausfüllen der Spalte ob PM On Hand ist oder Ankunft des PM
+    #AUSFÜLLEN der Spalte ob PM On Hand ist oder Ankunft des PM
     datum = ''
     for index, row in df_anc_fw.iterrows():
         if df_anc_fw['PM_DATUM'].loc[index] == '':
@@ -111,6 +111,8 @@ for q in sql_variables:
 
     #Ersetze Missing durch Datum
     df_all['KW']= df_all['ANMERKUNG'].replace(to_replace='MISSING', value='1900-01-01 00:00:00').replace(to_replace='PM ON HAND', value='1900-01-01 00:00:00')
+    df_all['HILFSSPALTE'] = df_all['KW']
+
     #Konvertiere Datum zu Kalenderwoche
     df_all['KW'] = pd.to_datetime(df_all['KW']).dt.strftime('%Y-%V')
     df_all['KW'] = df_all.apply(lambda x : 'TBD' if x['ANMERKUNG'] == 'MISSING' else x['KW'], axis=1)
@@ -128,7 +130,13 @@ for q in sql_variables:
     df_export=df_export.fillna(0)
     df_export = df_export[['FIXPOSNR','BELEGART','BELEGNR','ARTIKELNR','BEZEICHNUNG','DELIVERY DATE','PM Nr',
                           'PM Description','PE14_CommentEMEA','BUCHBESTAND','MENGE_BESTELLT','UNTERDECKUNG1','PM_ZUGANG','UNTERDECKUNG2',
-                          'PM_DATUM','ANMERKUNG','KW']]
+                          'PM_DATUM','ANMERKUNG','KW', 'HILFSSPALTE']]
+
+    df_export['HILFSSPALTE'].replace(to_replace=0, value='1900-01-01 00:00:00', inplace=True)
+    df_export['HILFSSPALTE'] = pd.to_datetime(df_export['HILFSSPALTE'])
+
+    # Zusatz
+    df_export['CHECK'] = df_export.apply(lambda x: 'PROBLEM' if x['DELIVERY DATE'] < x['HILFSSPALTE'] + pd.DateOffset(days=q[3]) else 'OK', axis=1)
 
     #Export
     #df_export.to_excel(rf'S:\{q[1]}.xlsx', index=False)
