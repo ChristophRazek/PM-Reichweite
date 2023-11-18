@@ -128,3 +128,5 @@ df_export = df_export[['FIXPOSNR','BELEGART','BELEGNR','ARTIKELNR','BEZEICHNUNG'
 #Export
 df_export.to_excel(r'S:\ANC.xlsx', index=False)
 print(df_export.to_markdown())
+
+test= 'test data'
